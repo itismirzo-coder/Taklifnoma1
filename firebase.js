@@ -14,6 +14,26 @@ const firebaseConfig = {
 };
 // -------------------------------------------
 
+const expiredList = document.getElementById('expiredList');
+expiredList.innerHTML = ''; // Clear old expired cards
+
+snapshot.forEach(doc => {
+  const data = doc.data();
+  const card = makeCard(doc.id, data);
+  const target = new Date(data.iso);
+  const now = new Date();
+
+  if (target < now) {
+    expiredList.appendChild(card); // Show expired separately
+  } else {
+    list.appendChild(card); // Show active
+    count++;
+  }
+});
+
+resultMsg.textContent = `✅ ${count} ta faol taklifnoma topildi.`;
+
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
