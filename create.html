@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Taklifnoma yaratish — Taklifnoma.uz</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- QR lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <div class="card big">
+      <h1>Taklifnoma yaratish</h1>
+      <p class="muted">Eksklyuziv taklifnoma yarating — foydalanuvchi keyin tekshirishi mumkin.</p>
+
+      <div class="form-grid">
+        <input id="name" placeholder="Ism Familiya" />
+        <input id="event" placeholder="Tadbir nomi (masalan: Nikoh, Tug'ilgan kun)" />
+        <input id="date" type="date" />
+        <input id="time" type="time" />
+      </div>
+
+      <div class="row">
+        <button id="saveBtn" class="btn primary">Saqlash</button>
+        <button id="shareBtn" class="btn ghost" disabled>QR bilan ko‘rsat</button>
+      </div>
+
+      <p id="status" class="status"></p>
+
+      <div id="qrcodeWrap" class="qrcard hidden">
+        <canvas id="qrcanvas"></canvas>
+        <p class="muted small">Sekin-asta QR kodni skanerlash orqali taklif ma'lumotlarini ko‘rish mumkin.</p>
+      </div>
+    </div>
+  </main>
+
+<script type="module">
+import { db } from './firebase.js';
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const nameEl = document.getElementById('name');
+const eventEl = document.getElementById('event');
+const dateEl = document.getElementById('date');
+const timeEl = document.getElementById('time');
+const saveBtn = document.getElementById('saveBtn');
+const shareBtn = document.getElementById('shareBtn');
+const status = document.getElementById('status');
+const qrcodeWrap = document.getElementById('qrcodeWrap');
+const qrcanvas = document.getElementById('qrcanvas');
+
+saveBtn.addEventListener('click', async () => {
+  status.textContent = '';
+  const name = nameEl.value.trim();
+  const event = eventEl.value.trim();
+  const date = dateEl.value;
+  const time = timeEl.value;
+  if (!name || !event || !date || !time) {
+    status.textContent = '⚠️ Iltimos barcha maydonlarni to‘ldiring.';
+    return;
+  }
+
+  // Saqlash: biz ISO datetime ham saqlaymiz (kamchiliklarni oldini olish uchun)
+  const iso = new Date(`${date}T${time}`).toISOString();
+
+  try {
+    const docRef = await addDoc(collection(db, "taklifnomalar"), {
+      name, event, date, time, iso, createdAt: serverTimestamp()
+    });
+    status.textContent = '✅ Taklifnoma saqlandi! (ID: ' + docRef.id + ')';
+    shareBtn.disabled = false;
+    // QR ma'lumot
+    shareBtn.dataset.payload = JSON.stringify({
+      id: docRef.id, name, event, date, time
+    });
+  } catch (err) {
+    console.error(err);
+    status.textContent = '❌ Xatolik: ' + err.message;
+  }
+});
+
+shareBtn.addEventListener('click', () => {
+  const payload = shareBtn.dataset.payload;
+  if (!payload) return;
+  qrcodeWrap.classList.remove('hidden');
+
+  // QR ga JSON joylaymiz — yoki xohlasang URL ham berish mumkin
+  const qr = new QRious({
+    element: qrcanvas,
+    value: payload,
+    size: 220,
+    level: 'H'
+  });
+});
+</script>
+</body>
+</html>

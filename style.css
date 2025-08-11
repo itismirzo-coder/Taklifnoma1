@@ -1,0 +1,60 @@
+/* style.css (premium) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root{
+  --bg1: linear-gradient(135deg,#0f172a,#1f2937 60%);
+  --glass: rgba(255,255,255,0.04);
+  --accent: linear-gradient(90deg,#ff7e5f,#feb47b);
+  --primary: #ff6b6b;
+  --muted: rgba(255,255,255,0.75);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  min-height:100vh;
+  background: radial-gradient(ellipse at top left, rgba(255,126,95,0.12), transparent 10%), var(--bg1);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.wrap{width:100%;max-width:980px;padding:20px}
+.card{background:var(--glass);border-radius:14px;padding:28px;backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+.card.big{padding:36px}
+h1{font-size:1.6rem;margin-bottom:6px}
+.muted{color:var(--muted);margin-bottom:18px}
+.small{font-size:0.85rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.form-grid input{padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:#fff}
+.row{display:flex;gap:12px;align-items:center;justify-content:flex-start;margin-top:10px}
+input[type="text"], input[type="date"], input[type="time"], input{padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);color:#fff}
+
+.btn{padding:12px 18px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+.btn.primary{background:linear-gradient(90deg,#4f46e5,#06b6d4);box-shadow:0 8px 18px rgba(79,70,229,0.18)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);color:inherit}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
+
+.status{margin-top:14px;color:var(--muted)}
+.qrcard{display:flex;flex-direction:column;align-items:center;margin-top:16px;padding:12px;background:rgba(0,0,0,0.15);border-radius:10px}
+.hidden{display:none}
+
+/* invites list */
+#list{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.invite-card{padding:14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));box-shadow:0 6px 18px rgba(2,6,23,0.6);transition:transform .18s}
+.invite-card:hover{transform:translateY(-6px)}
+.invite-card h3{margin:0 0 6px}
+.invite-card .muted{color:var(--muted)}
+.invite-card.expired{filter:grayscale(60%);opacity:0.7}
+.invite-card.soon{outline:2px solid rgba(255,126,95,0.14)}
+.countdown{font-weight:700;margin-top:8px}
+
+/* responsive */
+@media(max-width:720px){
+  .form-grid{grid-template-columns:1fr}
+  .row{flex-direction:column;align-items:stretch}
+  .buttons{flex-direction:column}
+}
