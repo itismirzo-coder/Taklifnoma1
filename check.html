@@ -1,40 +1,127 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taklifni tekshirish</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Taklifni tekshirish — Taklifnoma.uz</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Muddati tugagan taklifnoma uchun belgilash */
-    .expired {
-      border: 2px solid red;
-      background-color: rgba(255, 0, 0, 0.05);
-    }
-    .expired .status-text {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Taklifni tekshirish</h1>
-    <input type="text" id="searchName" placeholder="Ismingizni kiriting">
-    <button id="checkBtn" class="btn btn-primary">Tekshirish</button>
+  <main class="wrap">
+    <div class="card big">
+      <h1>Taklifni tekshirish</h1>
+      <p class="muted">Ismingizni yozing — tizim barcha taklifnomalarni ko‘rsatadi.</p>
 
-    <div id="result"></div>
-  </div>
+      <div class="row">
+        <input id="searchName" placeholder="Ism Familiya" />
+        <button id="checkBtn" class="btn primary">Tekshirish</button>
+      </div>
 
-  <script type="module">
-    import { db } from './firebase.js';
-    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      <div id="list"></div>
+      <p id="resultMsg" class="status"></p>
+    </div>
+  </main>
 
-    const checkBtn = document.getElementById('checkBtn');
-    const searchName = document.getElementById('searchName');
-    const resultDiv = document.getElementById('result');
+<script type="module">
+import { db } from './firebase.js';
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    checkBtn.addEventListener('click', async () => {
+const checkBtn = document.getElementById('checkBtn');
+const searchName = document.getElementById('searchName');
+const list = document.getElementById('list');
+const resultMsg = document.getElementById('resultMsg');
+
+function fmtLocal(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString();
+}
+
+function makeCard(docId, data) {
+  const card = document.createElement('div');
+  card.className = 'invite-card';
+
+  const title = document.createElement('h3');
+  title.textContent = data.event;
+  card.appendChild(title);
+
+  const sub = document.createElement('p');
+  sub.className = 'muted';
+  sub.textContent = `${data.name} — ${data.date} ${data.time}`;
+  card.appendChild(sub);
+
+  const timeBox = document.createElement('div');
+  timeBox.className = 'timebox';
+  card.appendChild(timeBox);
+
+  // Countdown
+  const target = new Date(data.iso);
+  const countdown = document.createElement('div');
+  countdown.className = 'countdown';
+  timeBox.appendChild(countdown);
+
+  function update() {
+    const now = new Date();
+    let diff = target - now;
+    if (diff <= 0) {
+      countdown.textContent = 'Tadbir vaqti o‘tib ketgan';
+      card.classList.add('expired');
+      clearInterval(intervalId);
+      return;
+    }
+    // days, hh:mm:ss
+    const days = Math.floor(diff / (1000*60*60*24));
+    diff -= days*(1000*60*60*24);
+    const hours = Math.floor(diff / (1000*60*60));
+    diff -= hours*(1000*60*60);
+    const minutes = Math.floor(diff / (1000*60));
+    diff -= minutes*(1000*60);
+    const seconds = Math.floor(diff/1000);
+    countdown.textContent = `${days} kun ${hours} soat ${minutes} min ${seconds} s`;
+    // styling near
+    const totalMs = target - new Date();
+    if (totalMs < 1000*60*60*24) card.classList.add('soon');
+  }
+  update();
+  const intervalId = setInterval(update, 1000);
+
+  // Add small action area (QR text)
+  const q = document.createElement('pre');
+  q.className = 'muted small';
+  q.textContent = `ID: ${docId}`;
+  card.appendChild(q);
+
+  return card;
+}
+
+checkBtn.addEventListener('click', async () => {
+  const name = searchName.value.trim();
+  list.innerHTML = '';
+  resultMsg.textContent = '';
+  if (!name) {
+    resultMsg.textContent = '⚠️ Ism kiriting.';
+    return;
+  }
+
+  const q = query(collection(db, "taklifnomalar"), where("name", "==", name));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    resultMsg.textContent = '❌ Taklifnoma topilmadi.';
+    return;
+  }
+
+  let count = 0;
+  snapshot.forEach(doc => {
+    count++;
+    const data = doc.data();
+    const card = makeCard(doc.id, data);
+    list.appendChild(card);
+  });
+
+  resultMsg.textContent = `✅ ${count} ta taklifnoma topildi.`;
+});
+</script>
+</body>
+</html>    checkBtn.addEventListener('click', async () => {
       resultDiv.innerHTML = "";
       const name = searchName.value.trim();
       if (!name) {
